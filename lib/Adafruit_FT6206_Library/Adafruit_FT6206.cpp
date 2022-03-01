@@ -53,7 +53,7 @@ Adafruit_FT6206::Adafruit_FT6206() { touches = 0; }
     @returns True if an FT6206 is found, false on any failure
 */
 /**************************************************************************/
-boolean Adafruit_FT6206::begin(uint8_t sda, uint8_t scl, uint8_t thresh) {
+uint8_t Adafruit_FT6206::begin(uint8_t sda, uint8_t scl, uint8_t thresh) {
   if (sda == 0 && scl == 0) {
     Wire.begin();
   } else {
@@ -84,19 +84,21 @@ boolean Adafruit_FT6206::begin(uint8_t sda, uint8_t scl, uint8_t thresh) {
   // change threshhold to be higher/lower
   writeRegister8(FT62XX_REG_THRESHHOLD, thresh);
 
-  if (readRegister8(FT62XX_REG_VENDID) != FT62XX_VENDID) {
-    return false;
+  uint8_t vend_id = readRegister8(FT62XX_REG_VENDID);
+
+  if (vend_id != FT62XX_VENDID) {
+    return vend_id;
   }
   uint8_t id = readRegister8(FT62XX_REG_CHIPID);
   if ((id != FT6206_CHIPID) && (id != FT6236_CHIPID) &&
       (id != FT6236U_CHIPID)) {
-    return false;
+    return id;
   }
 
-  return true;
+  return 0xffff;
 }
 
-boolean Adafruit_FT6206::begin(uint8_t thresh) {
+uint8_t Adafruit_FT6206::begin(uint8_t thresh) {
   begin(0, 0, thresh);
 }
 

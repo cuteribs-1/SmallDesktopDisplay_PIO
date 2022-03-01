@@ -1044,6 +1044,37 @@ void Webconfig()
 
 #endif
 
+void createButton()
+{
+  tft.fillRect(300, 20, 100, 30, 0xff0000);
+  tft.setTextSize(2);
+  tft.println("ON");
+}
+
+#include <Adafruit_FT6206.h>
+Adafruit_FT6206 ts = Adafruit_FT6206();
+
+void touch()
+{
+  if (ts.touched())
+  {
+    // Retrieve a point
+    TS_Point p = ts.getPoint();
+    // rotate coordinate system
+    // flip it around to match the screen.
+    p.x = map(p.x, 0, 480, 480, 0);
+    p.y = map(p.y, 0, 320, 320, 0);
+    int y = tft.height() - p.x;
+    int x = p.y;
+
+    Serial.print("x: ");
+    Serial.print(x);
+    Serial.print(", ");
+    Serial.print(y);
+    Serial.println();
+  }
+}
+
 void setup()
 {
   Button_sw1.setClickHandler(esp_reset);
@@ -1058,6 +1089,7 @@ void setup()
   //从eeprom读取DHT传感器使能标志
   DHT_img_flag = EEPROM.read(DHT_addr);
 #endif
+
   //从eeprom读取背光亮度设置
   LCD_BL_PWM = EEPROM.read(BL_addr);
   if (LCD_BL_PWM < 120 || LCD_BL_PWM > 255)
@@ -1076,6 +1108,20 @@ void setup()
   tft.setRotation(LCD_Rotation);
   tft.fillScreen(bgColor);
   tft.setTextColor(TFT_BLACK, bgColor);
+
+  createButton();
+
+  uint8_t ts_id = ts.begin(18, 19, 40);
+  Serial.print("TS Id: ");
+  Serial.println(ts_id);
+  if (ts_id != 0xffff)
+  {
+    Serial.println("Unable to start touchscreen.");
+  }
+  else
+  {
+    Serial.println("Touchscreen started.");
+  }
 
   targetTime = millis() + 1000;
   readwificonfig(); //读取存储的wifi信息
@@ -1169,7 +1215,7 @@ void loop()
 {
   LCD_reflash(0);
   Serial_set();
-  Button_sw1.loop(); //按钮轮询
+  // touch();
 }
 
 int currentIndex = 0;
@@ -1374,4 +1420,3 @@ void digitalClockDisplay(int reflash_en)
   clk.unloadFont();
   /***日期****/
 }
-
