@@ -111,7 +111,7 @@ struct config_type
 
 //---------------修改此处""内的信息--------------------
 //如开启WEB配网则可不用设置这里的参数，前一个为wifi ssid，后一个为密码
-config_type wificonf = {{""}, {""}};
+config_type wificonf = {{"ASUS"}, {"1234123412"}};
 
 //天气更新时间  X 分钟
 int updateweater_time = 10;
@@ -125,7 +125,7 @@ uint16_t bgColor = 0x0000;
 
 //其余状态标志位
 int LCD_Rotation = 0;        // LCD屏幕方向
-int LCD_BL_PWM = 120;        //屏幕亮度120-255，默认120
+int LCD_BL_PWM = 120;        //屏幕亮度25-255，默认120
 uint8_t Wifi_en = 1;         // wifi状态标志位  1：打开    0：关闭
 uint8_t UpdateWeater_en = 0; //更新时间标志位
 int prevTime = 0;            //滚动显示更新标志位
@@ -691,7 +691,7 @@ void Serial_set()
     if (SMOD == "0x01") //设置1亮度设置
     {
       int LCDBL = atoi(incomingByte.c_str()); // int n = atoi(xxx.c_str());//String转int
-      if (LCDBL >= 120 && LCDBL <= 255)
+      if (LCDBL >= 25 && LCDBL <= 255)
       {
         EEPROM.write(BL_addr, LCDBL); //亮度地址写入亮度值
         EEPROM.commit();              //保存更改的数据
@@ -700,12 +700,12 @@ void Serial_set()
         delay(5);
         SMOD = "";
         Serial.printf("亮度调整为：");
-        digitalWrite(TFT_BL, LCD_BL_PWM);
+        analogWrite(TFT_BL, LCD_BL_PWM);
         Serial.println(LCD_BL_PWM);
         Serial.println("");
       }
       else
-        Serial.println("亮度调整错误，请输入120-255");
+        Serial.println("亮度调整错误, 请输入 0-255");
     }
     if (SMOD == "0x02") //设置2地址设置
     {
@@ -801,7 +801,7 @@ void Serial_set()
       SMOD.trim();
       delay(2);
       if (SMOD == "0x01")
-        Serial.println("请输入亮度值，范围0-100");
+        Serial.println("请输入亮度值，范围25-255");
       else if (SMOD == "0x02")
         Serial.println("请输入9位城市代码，自动获取请输入0");
       else if (SMOD == "0x03")
@@ -980,7 +980,7 @@ void Webconfig()
                               <input type='radio' name='set_rotation' value='2'> USB接口朝上<br>\
                               <input type='radio' name='set_rotation' value='3'> USB接口朝左<br>";
   WiFiManagerParameter custom_rot(set_rotation); // custom html input
-  WiFiManagerParameter custom_bl("LCDBL", "屏幕亮度（120-255", "10", 3);
+  WiFiManagerParameter custom_bl("LCDBL", "屏幕亮度（25-255", "10", 3);
 #if DHT_EN
   WiFiManagerParameter custom_DHT11_en("DHT11_en", "Enable DHT11 sensor", "0", 1);
 #endif
@@ -1058,19 +1058,14 @@ void touch()
 {
   if (ts.touched())
   {
-    // Retrieve a point
     TS_Point p = ts.getPoint();
-    // rotate coordinate system
-    // flip it around to match the screen.
+    
     p.x = map(p.x, 0, 480, 480, 0);
     p.y = map(p.y, 0, 320, 320, 0);
     int y = tft.height() - p.x;
     int x = p.y;
 
-    Serial.print("x: ");
-    Serial.print(x);
-    Serial.print(", ");
-    Serial.print(y);
+    Serial.printf("x: %d, y: %d", x, y);
     Serial.println();
   }
 }
@@ -1092,8 +1087,8 @@ void setup()
 
   //从eeprom读取背光亮度设置
   LCD_BL_PWM = EEPROM.read(BL_addr);
-  if (LCD_BL_PWM < 120 || LCD_BL_PWM > 255)
-    LCD_BL_PWM = 120;
+  if (LCD_BL_PWM < 25 || LCD_BL_PWM > 255)
+    LCD_BL_PWM = 25;
 
   //从eeprom读取屏幕方向设置
   LCD_Rotation = EEPROM.read(Ro_addr);
@@ -1111,16 +1106,10 @@ void setup()
 
   createButton();
 
-  uint8_t ts_id = ts.begin(18, 19, 40);
-  Serial.print("TS Id: ");
-  Serial.println(ts_id);
-  if (ts_id != 0xffff)
+  Wire.begin(18, 19);
+  if (!ts.begin(40))
   {
     Serial.println("Unable to start touchscreen.");
-  }
-  else
-  {
-    Serial.println("Touchscreen started.");
   }
 
   targetTime = millis() + 1000;
@@ -1215,7 +1204,7 @@ void loop()
 {
   LCD_reflash(0);
   Serial_set();
-  // touch();
+  touch();
 }
 
 int currentIndex = 0;
