@@ -17,15 +17,13 @@
 
 #include "SmallDesktopDisplay.h"
 
-SmallDesktopDisplay::SmallDesktopDisplay()
+SmallDesktopDisplay::SmallDesktopDisplay(uint8_t rotation)
 {
+  _rotation = rotation;
 }
 SmallDesktopDisplay::~SmallDesktopDisplay()
 {
 }
-
-TFT_eSPI tft = TFT_eSPI();
-Adafruit_FT6206 ts = Adafruit_FT6206();
 
 void SmallDesktopDisplay::setBrightness(uint8_t percentage)
 {
@@ -38,45 +36,47 @@ void SmallDesktopDisplay::setBrightness(uint8_t percentage)
   analogWrite(TFT_BL, int(0xff * percentage / 100));
 }
 
-void SmallDesktopDisplay::init(uint8_t rotation)
+void SmallDesktopDisplay::init()
 {
-  // setup LCD
+  // setup LCM
+  Serial.println("Setup LCM");
   tft.begin();
-  tft.setRotation(rotation);
+  tft.setRotation(_rotation);
   tft.fillScreen(TFT_BLACK);
   setBrightness();
 
   // setup touch screen
+  Serial.println("Setup TP");
   Wire.begin(18, 19);
-
-  if (!ts.begin(40))
-    Serial.println("Touch screen not working");
+  Serial.printf("Touch screen: %d", ts.begin(40));
+  Serial.println();
 }
 
-TS_Point getTouchPoint(uint8_t n = 0)
+uint8_t SmallDesktopDisplay::touched()
+{
+  return ts.touched();
+}
+
+TS_Point SmallDesktopDisplay::getTouchPoint(uint8_t n)
 {
   TS_Point p = ts.getPoint(n);
   p.x = map(p.x, 0, TFT_WIDTH, TFT_WIDTH, 0);
   p.y = map(p.y, 0, TFT_HEIGHT, TFT_HEIGHT, 0);
-  uint8_t rotation = tft.getRotation();
-  uint16_t width = tft.width();
-  uint16_t height = tft.height();
-  uint16_t x;
-  uint16_t y;
+  uint16_t x, y;
 
-  switch (rotation)
+  switch (_rotation)
   {
   case 1:
     x = p.y;
-    y = height - p.x;
+    y = TFT_WIDTH - p.x;
     break;
   case 2:
-    x = width - p.x;
-    y = height - p.y;
+    x = TFT_WIDTH - p.x;
+    y = TFT_HEIGHT - p.y;
     break;
   case 3:
-    x = height - p.y;
-    y = p.x;
+    x = p.y;
+    y = TFT_WIDTH - p.x;
     break;
   default:
     x = p.x;
@@ -84,7 +84,12 @@ TS_Point getTouchPoint(uint8_t n = 0)
     break;
   }
 
-  Serial.printf("x: %d, y: %d", x, y);
-  Serial.println();
-  return TS_Point(x, y, p.z);
+  // Serial.printf("end r: %d, x: %d, y: %d", _rotation, x, y);
+  // Serial.println();
+  TS_Point point = TS_Point(x, y, p.z);
+
+  if (_lastPoint != point)
+    _lastPoint = point;
+
+  return point;
 }

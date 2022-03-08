@@ -10,14 +10,16 @@
 class SmallDesktopDisplay
 {
 private:
-  TFT_eSPI tft;
-  Adafruit_FT6206 ts;
+  uint8_t _rotation;
+  TS_Point _lastPoint;
 
 public:
-  SmallDesktopDisplay();
+  SmallDesktopDisplay(uint8_t rotation = 0);
   ~SmallDesktopDisplay();
-  void init(uint8_t rotation = 0);
+  void init();
   void setBrightness(uint8_t percentage = 50);
   uint8_t touched();
   TS_Point getTouchPoint(uint8_t n = 0);
+  TFT_eSPI tft = TFT_eSPI();
+  Adafruit_FT6206 ts = Adafruit_FT6206();
 };
