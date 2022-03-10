@@ -7,7 +7,7 @@
 #include <ArduinoJson.h>
 
 SmallDesktopDisplay _sdd(1);
-WiFiConfig _wifiConfig = {{"ASUS"}, {"1234123412"}};
+WiFiConfig _wifiConfig = {{"K2P2"}, {"1234123412"}};
 HTTPClient _http;
 u16_t _syncDelay = 10 * 60;
 u16_t _frameDelay = int(1000 / 30);
@@ -40,11 +40,11 @@ void renderTime()
 {
   time_t t = now();
   TFT_eSPI tft = _sdd.tft;
-  tft.setCursor(50, 80, 4);
+  tft.setCursor(50, 80);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.printf("%04d-%02d-%02d", year(t), month(t), day(t));
 
-  tft.setCursor(50, 120, 8);
+  tft.setCursor(50, 120);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.printf("%02d:%02d:%02d", hour(t), minute(t), second(t));
 }
@@ -79,11 +79,20 @@ void connectWifi()
   }
 
   Serial.println("WiFi Connecting");
+  u32_t startAt = millis();
 
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(300);
     Serial.print(".");
+
+    if (millis() - startAt > 10 * 1000)
+    {
+      _wifiConfig = {{""}, {""}};
+      Serial.println("Failed to connect WiFi, switching to SmartConfig");
+      connectWifi();
+      return;
+    }
   }
 
   Serial.println();

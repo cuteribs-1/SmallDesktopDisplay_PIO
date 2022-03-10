@@ -14,6 +14,7 @@
 #include "qr.h"
 #include "number.h"
 #include "weathernum.h"
+#include "font_24.h"
 
 #include "SmallDesktopDisplay.h"
 
@@ -43,6 +44,7 @@ void SmallDesktopDisplay::init()
   tft.begin();
   tft.setRotation(_rotation);
   tft.fillScreen(TFT_BLACK);
+  tft.loadFont(font_24);
   setBrightness();
 
   // setup touch screen
