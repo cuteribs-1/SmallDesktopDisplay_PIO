@@ -15,6 +15,7 @@ void setup()
 {
   Serial.begin(115200);
   _sdd.init();
+  delay(100);
   _sdd.setBrightness(30);
 
   _sdd.connectWifi();

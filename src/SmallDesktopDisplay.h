@@ -9,6 +9,8 @@
 #include <HTTPClient.h>
 #include <TimeLib.h>
 #define FONT_NOTO_SANS_SC "NotoSansSC-Regular24"
+#define FORE_COLOR TFT_BLACK
+#define BACK_COLOR TFT_WHITE
 
 static String AMAP_CERT =
     "-----BEGIN CERTIFICATE-----\n"

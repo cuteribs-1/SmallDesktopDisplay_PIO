@@ -46,13 +46,13 @@ void SmallDesktopDisplay::syncWeather()
       deserializeJson(doc, _http.getStream());
       JsonObject weather = doc["lives"][0];
 
-      char text[100];
+      char text[50];
       u16_t textWidth;
       TFT_eSprite *spr;
 
       sprintf(
           text, "%s %s - %s",
-          weather["province"].as<String>(),
+          doc["province"].as<String>(),
           weather["city"].as<String>(),
           weather["weather"].as<String>());
       Serial.println(text);
@@ -61,8 +61,8 @@ void SmallDesktopDisplay::syncWeather()
       spr->loadFont(FONT_NOTO_SANS_SC, LittleFS);
       textWidth = spr->textWidth(text);
       spr->createSprite(textWidth, 24);
-      spr->fillSprite(TFT_BLACK);
-      spr->setTextColor(TFT_WHITE, TFT_BLACK);
+      spr->fillSprite(BACK_COLOR);
+      spr->setTextColor(FORE_COLOR, BACK_COLOR);
       spr->print(text);
       spr->pushSprite(30, 10);
       spr->unloadFont();
@@ -124,8 +124,8 @@ void SmallDesktopDisplay::init()
   Serial.println("Setup LCM");
   tft.begin();
   tft.setRotation(_rotation);
-  tft.fillScreen(TFT_BLACK);
   setBrightness();
+  tft.fillScreen(BACK_COLOR);
 
   // setup font
   if (!LittleFS.begin())
@@ -235,8 +235,9 @@ void SmallDesktopDisplay::renderTime()
     sprintf(text, "%02d:%02d:%02d", tm.Hour, tm.Minute, tm.Second);
     textWidth = spr->textWidth(text);
     spr->createSprite(textWidth, 24);
-    spr->fillSprite(TFT_BLACK);
-    spr->setTextColor(TFT_WHITE, TFT_BLACK);
+    spr->fillSprite(BACK_COLOR);
+    spr->setTextColor(FORE_COLOR, BACK_COLOR);
+    spr->setTextDatum(CC_DATUM);
     spr->print(text);
     spr->pushSprite(50, 120);
     spr->unloadFont();
@@ -250,8 +251,8 @@ void SmallDesktopDisplay::renderTime()
     sprintf(text, "%04d%s%02d%s%02d%s", tm.Year + 1970, "年", tm.Month, "月", tm.Day, "日");
     textWidth = spr->textWidth(text);
     spr->createSprite(textWidth, 24);
-    spr->fillSprite(TFT_BLACK);
-    spr->setTextColor(TFT_WHITE, TFT_BLACK);
+    spr->fillSprite(BACK_COLOR);
+    spr->setTextColor(FORE_COLOR, BACK_COLOR);
     spr->print(text);
     spr->pushSprite(50, 80);
     spr->unloadFont();
